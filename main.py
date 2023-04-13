@@ -1,10 +1,9 @@
-from PyPDF2 import PdfReader
-import docx2txt
 from tkinter import *
 from tkinter.filedialog import askopenfilename
 from tkinter import messagebox
 from gtts import gTTS
 import os
+from read_file import Read_File
 
 # ---------------------------- CONSTANTS ------------------------------- #
 BLACK = "black"
@@ -15,30 +14,6 @@ FONT_NAME = "Courier"
 
 
 # ---------------------------- FUNCTIONS ------------------------------- #
-
-# reading word file
-def read_word_files(to_convert):
-    to_convert = to_convert.split('\n')[0]
-    return docx2txt.process(to_convert)
-
-
-# reading pdf file
-def read_pdf_files(to_convert):
-    to_convert = to_convert.split('\n')[0]
-    path = open(to_convert, 'rb')  # path of the PDF file
-    pdfReader = PdfReader(path)  # creating a PdfFileReader object
-    text = ""
-    for page in pdfReader.pages:
-        text += page.extract_text() + "\n"  # extracting the text from the PDF
-    return text
-
-
-# reading simple text file
-def read_text_files(to_convert):
-    to_convert = to_convert.split('\n')[0]
-    with open(to_convert) as file:
-        return file.read()
-
 
 def upload_files_from_computer():
     filetypes = [('Choose File', '*.pdf *.docx *.doc *.txt')]
@@ -52,21 +27,21 @@ def upload_files_from_computer():
 
 def convert_text_to_audio():
     to_convert = text.get('1.0', 'end')
+    read_file = Read_File(to_convert)
     if len(to_convert) == 0:  # check if text area is empty
         messagebox.showerror(title="No text to convert", message="Write or upload text to convert.")
     elif ".pdf" in to_convert:  # check if uploaded pdf, txt or doc file if yes redirect to proper function
-        return read_pdf_files(to_convert)
+        return read_file.read_pdf_files()
     elif ".txt" in to_convert:
-        return read_text_files(to_convert)
+        return read_file.read_text_files()
     elif ".doc" in to_convert:
-        return read_word_files(to_convert)
+        return read_file.read_word_files()
     else:  # if none of above then text in text area can be directly proceed in play or save function
         return to_convert
 
 
 def play():
     # Passing the text, language and slow=False - tells the module that the converted audio should have a high speed
-
     to_play = gTTS(text=convert_text_to_audio(),
                    lang=StringVar.get(rb_var),
                    slow=False)
